@@ -1,5 +1,5 @@
 import React from 'react';
-import StarsPattern from '../../AboutUs/components/StarsPattern';
+import StarsPattern from '../../aboutUs/components/StarsPattern';
 
 export default function AboutUsCard({ icon: Icon, title, description, size = 'normal' }) {
   const isLarge = size === 'large';
