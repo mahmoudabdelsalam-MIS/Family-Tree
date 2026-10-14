@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@import "tailwindcss";
+
+
+@theme {
+  /* تعريف الألوان الخاصة بك */
+  --color-primary: #589E08;
+  --color-secondary: #3D3D3D;
+  --color-secondaryBgColor: #E7F0E9;
+  --color-gray: #828385;
+  --color-primaryGlow: #97C528A6;
+  --color-primaryButton: #3C1110;
+  --color-borderColor: #004354;
+  --color-Navlink: #1C2C35;
+  --color-secondaryButton: #F68D20;
+  --color-dark: #0f172a;
+  --color-light: #f8fafc;
+}
+
+@theme {
+  /* --font-primary: 'FrutigerArabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+}
+
+body{
+  background-color: #f5f5f5;  
+  /* font-family: var(--font-primary); */
+}
+
+
+/* nav bar css */
+
+
