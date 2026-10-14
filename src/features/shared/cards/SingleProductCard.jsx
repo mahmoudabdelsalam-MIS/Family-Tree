@@ -1,5 +1,6 @@
 import React from "react";
 import { Calendar, Clock, Play } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function ArticleCard({
   image,
@@ -14,7 +15,8 @@ export function ArticleCard({
   const Tag = href ? "a" : "article";
 
   return (
-    <Tag dir="rtl" href={href} onClick={onClick}
+    <Link to={"/singlePodcast"}>
+    <Tag onClick={onClick}
       className="group block cursor-pointer rounded-3xl bg-white p-3 pb-6 text-inherit no-underline transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       {/* غلاف الصورة */}
@@ -57,6 +59,7 @@ export function ArticleCard({
         {title}
       </h3>
     </Tag>
+    </Link>
   );
 }
 
