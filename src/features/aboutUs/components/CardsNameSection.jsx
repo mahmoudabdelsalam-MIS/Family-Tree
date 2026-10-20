@@ -25,9 +25,10 @@ export default function CardsSection() {
   ]
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 pb-12 flex flex-col md:flex-row items-center justify-center gap-6 dir-rtl">
+    <div className="w-full max-w-7xl mx-auto px-4 pb-12 flex flex-col lg:flex-row items-center justify-center gap-6 dir-rtl">
     {cards.map((card) => (
         <AboutUsCard
+        key={card.title}
         title={card.title}
         description={card.description}
         icon={card.icon}

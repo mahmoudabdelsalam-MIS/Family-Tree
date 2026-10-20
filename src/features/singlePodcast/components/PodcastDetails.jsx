@@ -1,31 +1,44 @@
 import React from 'react'
-import bg from '../../../assets/img10.jpg'
+import Skeleton from '../../shared/skeleton/Skeleton'
 
-export default function PodcastDetails() {
+// skeleton لصفحة البودكاست: كارت المشغل + النص والصورة
+// (بيتحط جوه نفس الـ wrapper بتاع SinglePodcast، فبيرجع Fragment)
+export function PodcastPageSkeleton() {
+  const textWidths = ['w-full', 'w-full', 'w-11/12', 'w-full', 'w-10/12', 'w-full', 'w-2/3'];
+
   return (
-    <div className='w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8 text-md text-right font-normal text-gray-600 my-10'>
-      <div className='flex-1 text-right leading-8'>
-        <p>
-          هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم
-          توليد هذا النص من مولد النص العربى، حيث يمكنك أن تولد مثل هذا النص أو العديد من النصوص الأخرى
-          إضافة إلى زيادة عدد الحروف التى يولدها التطبيق.إذا كنت تحتاج إلى عدد أكبر من الفقرات يتيح
-          لك مولد النص العربى زيادة عدد الفقرات كما تريد، النص لن يبدو مقسما ولا يحوي أخطاء لغوية، 
-          مولد النص العربى مفيد لمصممي المواقع على وجه الخصوص، حيث يحتاج العميل فى كثير من الأحيان 
-          أن يطلع على صورة حقيقية لتصميم الموقع.ومن هنا وجب على المصمم أن يضع نصوصا مؤقتة على التصميم
-          ليظهر للعميل الشكل كاملاً،دور مولد النص العربى أن يوفر على المصمم عناء البحث عن نص بديل لا 
-          علاقة له بالموضوع الذى يتحدث عنه التصميم فيظهر بشكل لا يليق.هذا النص يمكن أن يتم تركيبه على أي تصميم
-          دون مشكلة فلن يبدو وكأنه نص منسوخ، غير منظم، غير منسق، أو حتى غير مفهوم. لأنه مازال نصاً بديلاً ومؤقتاً.
-          هذا النص يمكن أن يتم تركيبه على أي تصميم دون مشكلة فلن يبدو وكأنه نص منسوخ، غير منظم، غير منسق، أو حتى غير مفهوم. لأنه مازال نصاً بديلاً ومؤقتاً.
-        </p>
-      </div>
+    <>
+      {/* كارت المشغل */}
+      <Skeleton rounded="rounded-[2.5rem]" className="w-full h-80 md:h-72" />
 
+      {/* النص والصورة */}
+      <div className='w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8 my-10'>
+        <div className='flex-1 w-full flex flex-col gap-3'>
+          {textWidths.map((w, i) => (
+            <Skeleton key={i} rounded="rounded-md" className={`h-4 ${w}`} />
+          ))}
+        </div>
+        <Skeleton rounded="rounded-3xl" className='flex-1 w-full h-[400px] md:h-[450px]' />
+      </div>
+    </>
+  )
+}
+
+export default function PodcastDetails({ content, image }) {
+  return (
+    <div className='font-secondary w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8 text-lg text-right font-light text-[#777777] my-10'>
+      <div dir='rtl' className='flex-1 text-right leading-8'
+      dangerouslySetInnerHTML={{ __html: content }}/>
+
+    {image && (
       <div className='flex-1 w-full h-[400px] md:h-[450px] rounded-3xl overflow-hidden shadow-sm shrink-0'>
-        <img 
-          src={bg} 
-          alt="Podcast Details" 
+        <img
+          src={image}
+          alt="Podcast Details"
           className='w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105'
         />
       </div>
+      )}
     </div>
   )
 }

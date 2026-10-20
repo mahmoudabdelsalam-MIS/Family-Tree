@@ -3,65 +3,111 @@ import { createPortal } from 'react-dom';
 import StepPersonalInfo from './steps/StepPersonalInfo';
 import StepServiceType from './steps/StepServiceType';
 import StepDateTime from './steps/StepDateTime';
-import { bookingApi } from './api/bookingApi';
+import { contactService } from '../../services/contactService';
 import Button from '../shared/button/Button';
+
+const getErrorMessage = (err) =>
+  err?.response?.data?.message || 'حدث خطأ، يرجى المحاولة مرة أخرى.';
 
 export default function BookingFlow() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [bookingId, setBookingId] = useState(null);
+  const [inquiryToken, setInquiryToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // مرحلة 1: إرسال البيانات الشخصية والحصول على المعرف
+  // مرحلة 1: إرسال البيانات الشخصية والحصول على الـ token
   const handleStep1Submit = async (data) => {
     setIsLoading(true);
+    setErrorMessage('');
     try {
-      const res = await bookingApi.createBooking(data);
-      setBookingId(res.bookingId || res.id); // تخزين معرف الحجز المستلم
+      const res = await contactService.createInquiry(data);
+      // الـ token في res.data.token
+      const token =
+        res?.data?.inquiryToken ?? res?.data?.token ?? res?.inquiryToken ?? res?.token;
+
+      if (!token) {
+        console.error('مفيش token في الرد:', res);
+        setErrorMessage('تعذر بدء الطلب، يرجى المحاولة لاحقاً.');
+        return;
+      }
+
+      setInquiryToken(token);
       setCurrentStep(2);
     } catch (err) {
       console.error('خطأ في إرسال البيانات الشخصية:', err);
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // مرحلة 2: إرسال نوع الخدمة لنفس المعرف
+  // مرحلة 2: فئة الخدمة فقط (PATCH step-2)
   const handleStep2Submit = async (data) => {
-    if (!bookingId) return;
+    if (!inquiryToken) return;
     setIsLoading(true);
+    setErrorMessage('');
     try {
-      await bookingApi.updateServiceType(bookingId, data);
+      await contactService.updateInquiry(inquiryToken, { serviceCategoryId: data.serviceType });
       setCurrentStep(3);
     } catch (err) {
       console.error('خطأ في تحديد نوع الخدمة:', err);
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // مرحلة 3: إرسال الموعد والتأكيد
+  // مرحلة 3: التاريخ والوقت (PATCH step-3)
   const handleStep3Submit = async (data) => {
-    if (!bookingId) return;
+    if (!inquiryToken) return;
     setIsLoading(true);
+    setErrorMessage('');
     try {
-      await bookingApi.updateSchedule(bookingId, data);
+      await contactService.completeInquiry(inquiryToken, {
+        date: data.date,
+        timeId: data.timeId,
+      });
+
       setIsCompleted(true);
       setCurrentStep(4);
     } catch (err) {
       console.error('خطأ في حفظ الموعد:', err);
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-    const handleClose = () => {
+  // قفل المودال قبل الإكمال: نبلّغ السيرفر إن الطلب اتلغى ونرجع للبداية
+  const handleClose = () => {
+    const token = inquiryToken;
+    const step = currentStep; // لازم يتحفظ قبل setCurrentStep(1)
     setCurrentStep(1);
-  };
+    setInquiryToken(null);
+    setErrorMessage('');
 
+    if (token && !isCompleted) {
+      contactService.abandonInquiry(token, step).catch((err) => {
+        console.error('خطأ في إلغاء الطلب:', err);
+      });
+    }
+  };
 
   return (
     <div className="w-full py-10 px-4">
+      {/* رسالة الخطأ: فوق المودالات كلها */}
+      {errorMessage &&
+        createPortal(
+          <div
+            dir="rtl"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] bg-red-50 text-red-600 border border-red-200 rounded-xl px-5 py-3 text-sm font-semibold shadow-lg"
+          >
+            {errorMessage}
+          </div>,
+          document.body
+        )}
+
       {/* الخطوة الأولى تعرض دائمًا بالصفحة */}
       <StepPersonalInfo onSubmit={handleStep1Submit} isLoading={isLoading && currentStep === 1} />
 

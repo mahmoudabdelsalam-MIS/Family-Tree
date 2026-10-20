@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Maskgroup from '../../../assets/Maskgroup.svg'
+import {Maskgroup} from '../../../assets/assets'
 import {
   Calendar,
   Clock,
@@ -12,27 +12,46 @@ import {
 export default function SinglePodcastCard({
   image = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600",
   title = "تأثير الذكاء الاصطناعي على حياتنا اليومية",
-  hijriDate = "17 محرم 1444",
-  gregorianDate = "15 أغسطس 2022",
   time = "12:30 م",
   duration = "2 س . 51 د",
   currentTime = "00:29:24",
   totalTime = "02:51:39",
+  post,
   progressPercent = 35, // نسبة التقدم الفعلي للصوت (من 0 إلى 100)
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   // توليد أشرطة الـ Waveform التفاعلية
-  const waveformHeights = [
+const waveformHeights = [
     20, 35, 25, 45, 60, 40, 80, 55, 30, 40, 65, 90, 75, 50, 30, 20, 40, 60, 85,
     50, 30, 45, 70, 95, 60, 40, 25, 50, 70, 40, 30, 60, 80, 50, 30, 20, 40, 60,
-    30, 20,
+    30, 20, 65, 85, 35, 50, 75, 65, 45, 30, 
   ];
+
+    // التاريخ الهجري والميلادي من تاريخ الـ API (مثال: 2026-10-14)
+  const dateObj = post.date ? new Date(post.date) : null;
+  const hijriDate = dateObj
+    ? new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(dateObj)
+    : '';
+  const gregorianDate = dateObj
+    ? new Intl.DateTimeFormat('ar-EG', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(dateObj)
+    : '';
+
+  console.log(post);
+  
 
   return (
     <div
       dir="ltr"
-      className="relative w-full max-w-7xl mx-auto bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-4 sm:p-6 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
+      className="font-primary relative w-full max-w-7xl mx-auto bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-4 sm:p-6 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
     >
       {/* 1. الخلفية المتموجة (Waves Overlay) على اليسار */}
       <div className="absolute inset-y-0 left-0 w-full pointer-events-none opacity-20 flex items-center">
@@ -43,25 +62,27 @@ export default function SinglePodcastCard({
       <div dir="rtl" className="flex-1 w-full flex flex-col items-start justify-between z-10 gap-4">
         
         {/* التاريخ والوقت */}
-        <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-500 mr-auto md:mr-0">
+        <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-black mr-0">
+          {(hijriDate || gregorianDate) && (
           <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4 text-primary shrink-0" />
             <span>
-              {hijriDate} - {gregorianDate}
+              <span className="ml-2">{hijriDate}</span> - <span className="mx-2">{gregorianDate}</span>
             </span>
           </div>
+          )}
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary shrink-0" />
-            <span>{time}</span>
+            <span>{post.publishedTime}</span>
           </div>
         </div>
 
         {/* عنوان الحلقة والمدة */}
         <div className="flex flex-col gap-1 w-full text-right">
-          <h2 className="text-xl sm:text-2xl font-black text-gray-800 leading-snug">
-            {title}
+          <h2 className="text-xl font-bold text-gray-800 leading-snug">
+            {post.title}
           </h2>
-          <span className="text-sm font-bold text-gray-500">{duration}</span>
+          <span className="text-sm font-bold text-black">{duration}</span>
         </div>
 
         {/* أشرطة التردد الصوتي (Waveform) */}
@@ -83,28 +104,8 @@ export default function SinglePodcastCard({
         </div>
 
         {/* شريط التقدم وأزرار التحكم */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div className="w-full flex flex-wrap items-center justify-start gap-3 pt-1">
           
-          {/* الوقت المنقضي */}
-          <span className="text-xs font-bold text-gray-500 font-mono">
-            {currentTime}
-          </span>
-
-          {/* شريط التشغيل التفاعلي (Progress Slider) */}
-          <div className="flex-1 relative mx-2 h-2 bg-gray-200 rounded-full overflow-visible flex items-center">
-            <div
-              style={{ width: `${progressPercent}%` }}
-              className="h-full bg-primary rounded-full relative"
-            >
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full shadow-md cursor-pointer hover:scale-125 transition-transform" />
-            </div>
-          </div>
-
-          {/* الوقت المتبقي */}
-          <span className="text-xs font-bold text-gray-500 font-mono">
-            {totalTime}
-          </span>
-
           {/* أزرار التحكم بالتشغيل والتقديم والتأخير */}
           <div className="flex items-center gap-3 mr-2">
             {/* إرجاع 15 ثانية */}
@@ -142,6 +143,26 @@ export default function SinglePodcastCard({
               </span>
             </button>
           </div>
+
+          {/* الوقت المتبقي */}
+          <span className="text-xs font-bold text-gray-500 font-mono">
+            {totalTime}
+          </span>
+
+          {/* شريط التشغيل التفاعلي (Progress Slider) */}
+          <div className="w-48 relative mx-2 h-2 bg-gray-200 rounded-full overflow-visible flex items-center">
+            <div
+              style={{ width: `${progressPercent}%` }}
+              className="h-full bg-primary rounded-full relative"
+            >
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full shadow-md cursor-pointer hover:scale-125 transition-transform" />
+            </div>
+          </div>
+
+          {/* الوقت المنقضي */}
+          <span className="text-xs font-bold text-gray-500 font-mono">
+            {currentTime}
+          </span>
 
         </div>
 

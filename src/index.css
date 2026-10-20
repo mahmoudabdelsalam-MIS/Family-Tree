@@ -1,10 +1,111 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/frutiger/FrutigerLTArabic45Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/frutiger/FrutigerLTArabic55Roman.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/frutiger/FrutigerLTArabic65Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/frutiger/frutigerltarabic75black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. تعريف خط Montserrat */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat/Montserrat-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DIN Next LT Arabic';
+  src: url('/fonts/DINNextLTArabic-Regular-3.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Changa';
+  src: url('/public/fonts/changa/static/Changa-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
-  /* تعريف الألوان الخاصة بك */
   --color-primary: #589E08;
   --color-secondary: #3D3D3D;
   --color-secondaryBgColor: #E7F0E9;
@@ -12,22 +113,18 @@
   --color-primaryGlow: #97C528A6;
   --color-primaryButton: #3C1110;
   --color-borderColor: #004354;
-  --color-Navlink: #1C2C35;
+  --color-Navlink: #1E1E1E;
   --color-secondaryButton: #F68D20;
   --color-dark: #0f172a;
   --color-light: #f8fafc;
+
+  --font-primary: 'Frutiger LT Arabic', sans-serif;
+  --font-secondary: 'Montserrat', sans-serif;
+  --font-breadcrumb: 'DIN Next LT Arabic', sans-serif;
+  --font-form: 'Changa', sans-serif;
 }
 
-@theme {
-  /* --font-primary: 'FrutigerArabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
-}
-
-body{
+body {
   background-color: #f5f5f5;  
-  /* font-family: var(--font-primary); */
+  font-family: var(--font-primary);
 }
-
-
-/* nav bar css */
-
-

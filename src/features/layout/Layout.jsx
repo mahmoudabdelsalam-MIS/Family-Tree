@@ -4,6 +4,7 @@ import { Outlet , useLocation , ScrollRestoration} from 'react-router-dom'
 import Footer from '../shared/footer/Footer'
 import BreadCrumb from '../shared/breadCrumb/BreadCrumb'
 import ScrollToTop from '../shared/button/ScrollToTop'
+import { BreadcrumbProvider } from '../../context/breadcrumb/BreadCrumbContext'
 
 export default function Layout() {
     const location = useLocation()
@@ -11,6 +12,7 @@ export default function Layout() {
 
     return (
     <>
+    <BreadcrumbProvider>
         <Navbar/>
         <main className={isHomePage ? 'pt-0' : 'pt-24 md:pt-28'}>
             {!isHomePage && <BreadCrumb />}
@@ -19,6 +21,7 @@ export default function Layout() {
         <ScrollToTop/>
         <ScrollRestoration/>
         <Footer/>
+    </BreadcrumbProvider>
     </>
     )
 }

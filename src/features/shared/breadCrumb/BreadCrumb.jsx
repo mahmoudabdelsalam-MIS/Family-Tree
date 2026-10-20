@@ -1,6 +1,7 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
-import breadCrumbBg from '../../../assets/breadCrumbBg.png'
+import {breadCrumbBg} from '../../../assets/assets'
+import { useBreadcrumbValue } from '../../../context/breadcrumb/BreadCrumbContext';
 
 const routeLabels = {
   "": "الرئيسية",
@@ -21,17 +22,19 @@ const getLabel = (segment) => {
 };
 
 export default function BreadCrumb() {
-  const location = useLocation();
+ const location = useLocation();
+  const customTitle = useBreadcrumbValue();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
-  // جلب اسم الصفحة الحالية فقط للعرض في المنتصف
-  const currentSegment = pathSegments[pathSegments.length - 1] || "";
-  const pageTitle = getLabel(currentSegment);
+const isDetailPage = pathSegments.length > 1;
+const isTitleLoading = isDetailPage && !customTitle;
+
+const pageTitle = customTitle || getLabel(pathSegments[pathSegments.length - 1] || "");
 
   return (
-    <div dir='rtl' className='max-w-8xl mx-auto px-4 sm:px-6 my-4'>
+    <div dir='rtl' className='max-w-[1360px] mx-auto px-4 sm:px-6 my-4'>
       {/* الكارت الرئيسي بالحواف الدائرية والبوردر والارتفاع المضبوط */}
-      <div className='relative h-44 sm:h-52 md:h-60 w-full rounded-3xl sm:rounded-4xl overflow-hidden shadow-sm flex items-center justify-center'>
+      <div className='relative h-44 sm:h-52 md:h-73 w-full rounded-3xl sm:rounded-4xl overflow-hidden shadow-sm flex items-center justify-center'>
         
         {/* صورة الخلفية الخضراء */}
         <img 
@@ -56,9 +59,16 @@ export default function BreadCrumb() {
               </clipPath>
               </defs>
               </svg>
-            <h1 className='font-black text-3xl sm:text-4xl md:text-5xl text-white tracking-wide'>
-              {pageTitle}
+            {isTitleLoading ? (
+            <div
+                aria-hidden="true"
+                className='animate-pulse motion-reduce:animate-none bg-white/30 rounded-2xl h-9 sm:h-10 md:h-12 w-56 sm:w-72 md:w-96'
+            />
+            ) : (
+            <h1 className='font-medium font-breadcrumb text-3xl sm:text-4xl md:text-5xl text-white tracking-wide'>
+                {pageTitle}
             </h1>
+            )}
           </div>
         </div>
 

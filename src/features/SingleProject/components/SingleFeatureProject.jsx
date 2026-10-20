@@ -13,7 +13,7 @@ export default function SingleFeatureProject({icon : Icon , title , desc}) {
         </div>
         <div dir='rtl' className='flex flex-col justify-center items-center gap-3'>
         <h4 className='font-bold text-2xl'>{title}</h4>
-        <p className='text-md text-center font-semibold max-w-xs'>{desc}</p>
+        <p className='text-base text-center font-semibold max-w-xs'>{desc}</p>
         </div>
       
     </div>

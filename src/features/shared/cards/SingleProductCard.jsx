@@ -5,22 +5,17 @@ import { Link } from "react-router-dom";
 export function ArticleCard({
   image,
   title,
-  hijriDate, //تاريخ هجري
-  gregorianDate, //تاريخ ميلادي
+  date, //تاريخ ميلادي
   time,
   isMedia = false, // اظهار زر التشغيل لو كان فديو
   href,
   onClick,
 }) {
-  const Tag = href ? "a" : "article";
 
   return (
-    <Link to={"/singlePodcast"}>
-    <Tag onClick={onClick}
-      className="group block cursor-pointer rounded-3xl bg-white p-3 pb-6 text-inherit no-underline transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-    >
+    <Link to={href} onClick={onClick} className="group block cursor-pointer rounded-[40px] bg-white p-3 pb-6 text-inherit no-underline transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       {/* غلاف الصورة */}
-      <div className="relative aspect-[3/2] overflow-hidden rounded-2xl">
+      <div className="relative aspect-[3/2] overflow-hidden rounded-[30px]">
         <img
           src={image}
           alt={title}
@@ -39,26 +34,30 @@ export function ArticleCard({
       </div>
 
       {/* تفاصيل التاريخ والوقت */}
-      <div className="mt-4 flex items-center justify-between gap-2 px-1 text-xs font-medium text-gray-500">
+      <div className="mt-4 flex items-center justify-between gap-2 px-1 text-xs font-bold text-[#505050]">
+        {date && (
         <div className="flex items-center gap-1.5 whitespace-nowrap">
           <Calendar className="h-4 w-4 text-primary shrink-0" />
           <span>
-            {hijriDate && `${hijriDate} - `}
-            {gregorianDate}
+            {date}
           </span>
         </div>
+        )}
 
+        {time && (
         <div className="flex items-center gap-1.5 whitespace-nowrap">
           <Clock className="h-4 w-4 text-primary shrink-0" />
           <span>{time}</span>
         </div>
+        )}
       </div>
 
       {/* العنوان */}
-      <h3 className="mt-3 line-clamp-2 px-1 text-base md:text-lg font-bold leading-snug text-gray-800 transition-colors group-hover:text-primary">
+      {title && (
+      <h3 className="mt-3 line-clamp-2 px-1 text-base md:text-xl font-bold leading-snug text-[#505050] transition-colors group-hover:text-primary">
         {title}
       </h3>
-    </Tag>
+      )}
     </Link>
   );
 }

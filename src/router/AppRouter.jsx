@@ -35,6 +35,10 @@ const router = createBrowserRouter([
                 element:<Blog/>
             },
             {
+                path: "blog/:id",
+                element:<SinglePodcast/>
+            },
+            {
                 path: "contactUs",
                 element:<ContactUs/>
             },
@@ -45,21 +49,18 @@ const router = createBrowserRouter([
             )
             }, 
             {
-                path: "singleProject",
+                path: "/projects/:slug",
                 element:(
                 <SingleProject/>
             )
             },
             {
-                path: "singlePodcast",
-                element:(
-                <SinglePodcast/>
-            )
-            },            {
-                path: "singleNew",
-                element:(
-                <SingleNew/>
-            )
+                path: "podcast/:id",
+                element:<SinglePodcast/>
+            },
+            {
+                path: "news/:id",
+                element:<SingleNew/>
             },
             ]
         },

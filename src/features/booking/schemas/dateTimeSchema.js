@@ -1,6 +1,6 @@
-import * as Yup from 'yup';
+import * as yup from 'yup';
 
-export const dateTimeSchema = Yup.object().shape({
-  date: Yup.string().required('يرجى تحديد التاريخ'),
-  time: Yup.string().required('يرجى اختيار الوقت المناسب'),
+export const dateTimeSchema = yup.object().shape({
+  date: yup.string().required('يرجى تحديد التاريخ'),
+  timeId: yup.string().nullable().required('يرجى اختيار الوقت المناسب'),
 });

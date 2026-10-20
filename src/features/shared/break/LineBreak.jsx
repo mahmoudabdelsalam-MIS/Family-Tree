@@ -1,5 +1,5 @@
 import React from 'react'
-import breakSection from '../../../assets/breakSection.png'
+import {breakSection} from '../../../assets/assets'
 
 export default function LineBreak() {
   return (

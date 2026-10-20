@@ -2,9 +2,9 @@ import React from 'react';
 
 /* الأحجام التلاتة زي الصورة */
 const sizes = {
-  sm: 'w-full sm:w-[178px] h-[142px]', // الكارت الأبيض الصغير
-  md: 'w-full sm:w-[178px] h-[285px]', // كارت الشجرة والكارت الأزرق
-  lg: 'w-full sm:w-[280px] h-[345px]', // كارت الأخضر وكارت الموبايل
+  sm: 'w-full sm:w-[186px] h-[142px]', // الكارت الأبيض الصغير
+  md: 'w-full sm:w-[186px] h-[285px]', // كارت الشجرة والكارت الأزرق
+  lg: 'w-full sm:w-[295px] h-[345px]', // كارت الأخضر وكارت الموبايل
 };
 
 /* الألوان / الأنواع */
@@ -39,7 +39,7 @@ export default function HeroSectionCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl shrink-0
+      className={`relative overflow-hidden rounded-4xl shrink-0
         ${sizes[size] ?? sizes.md}
         ${variants[variant] ?? variants.green}
         ${className}`}

@@ -20,7 +20,7 @@ const Button = forwardRef(
   ) => {
     const baseClasses = `
         inline-flex items-center justify-center 
-        font-semibold 
+        font-normal 
         cursor-pointer
         transition-all duration-200 
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
@@ -45,7 +45,7 @@ const Button = forwardRef(
     };
 
     const sizes = {
-        sm: "px-5 py-2 text-sm min-h-[38px]",
+        sm: "px-8 py-2 text-sm min-h-[38px]",
         md: "px-10 py-3 text-base min-h-[46px]",
         lg: "px-12 py-4 text-lg min-h-[56px]",
     };
@@ -63,6 +63,7 @@ const Button = forwardRef(
 
     return (
     <button
+        dir="ltr"
         ref={ref}
         disabled={isLoading || props.disabled}
         className={`
@@ -89,7 +90,7 @@ const Button = forwardRef(
             className={`flex items-center gap-2 ${iconPostion === "end" ? "flex-row-reverse" : ""}`}
         >
             {children}
-            {Icon && <Icon className="w-5 h-5" />}
+            {Icon && <Icon className="w-4 h-4 translate-y-1/6" />}
         </div>
         )}
       </button>

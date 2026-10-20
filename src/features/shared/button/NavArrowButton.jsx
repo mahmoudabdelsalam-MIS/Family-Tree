@@ -10,8 +10,8 @@ export default function NavArrowButton({ type = 'next', onClick }) {
       aria-label={isPrev ? 'المشروع السابق' : 'المشروع التالي'}
       className={`w-11 h-11 rounded-full transition-colors flex items-center justify-center cursor-pointer ${
         isPrev
-          ? 'bg-primary hover:bg-primary/90 text-white'
-          : 'bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm'
+          ? 'bg-primary hover:bg-primary/80 text-white hover:text-white/80 active:bg-primary/90'
+          : 'bg-white border border-gray-200 hover:bg-white/50 text-gray-700 hover:text-gray-700/80 active:bg-white/90 shadow-sm'
       }`}
     >
       {isPrev ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}

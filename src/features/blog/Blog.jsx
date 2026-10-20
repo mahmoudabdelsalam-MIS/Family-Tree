@@ -1,158 +1,147 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LayoutGrid, Newspaper, Mic } from "lucide-react";
 import SingleProductCard from "../shared/cards/SingleProductCard"; // استيراد المكون
+import Skeleton from "../shared/skeleton/Skeleton";
+import CardSkeleton from "../shared/skeleton/CardSkeleton";
+import Pagination from "../shared/pagination/Pagination";
+import { useBlogs } from "../../hooks/useBlog";
 
-import singleproductimg1 from '../../assets/singleproductimg1.jpg'
-import singleproductimg2 from '../../assets/singleproductimg2.jpg'
-import singleproductimg3 from '../../assets/singleproductimg3.jpg'
+const PAGE_SIZE = 6;
 
-// 1. مصفوفة البيانات المؤقتة (Dummy Data)
-const mockArticles = [
-  {
-    id: 1,
-    type:"podcast",
-    image: singleproductimg1,
-    title: "تجمع العائلة في عيد الفطر المبارك لعام 1445هـ وأهم اللحظات التوثيقية",
-    hijriDate: "10 شوال 1445",
-    gregorianDate: "18 أبريل 2024",
-    time: "02:30 م",
-    isMedia: false,
-  },
-  {
-    id: 2,
-    type:"podcast",
-    image: singleproductimg2,
-    title: "بودكاست: كيف نحافظ على التراث العائلي وننقله للأجيال القادمة؟",
-    hijriDate: "15 محرم 1446",
-    gregorianDate: "21 يوليو 2024",
-    time: "15 دقيقة",
-    isMedia: true, // يظهر زر التشغيل
-  },
-  {
-    id: 3,
-    type:"news",
-    image: singleproductimg3,
-    title: "دليل استخدام منصة شجرة العائلة وتوثيق بيانات الأفراد والروابط الأسرية",
-    hijriDate: "01 صفر 1446",
-    gregorianDate: "06 أغسطس 2024",
-    time: "05:00 م",
-    isMedia: false,
-  },
-    {
-    id: 4,
-    type:"news",
-    image: singleproductimg1,
-    title: "تجمع العائلة في عيد الفطر المبارك لعام 1445هـ وأهم اللحظات التوثيقية",
-    hijriDate: "10 شوال 1445",
-    gregorianDate: "18 أبريل 2024",
-    time: "02:30 م",
-    isMedia: false,
-  },
-  {
-    id: 5,
-    type:"articles",
-    image: singleproductimg2,
-    title: "بودكاست: كيف نحافظ على التراث العائلي وننقله للأجيال القادمة؟",
-    hijriDate: "15 محرم 1446",
-    gregorianDate: "21 يوليو 2024",
-    time: "15 دقيقة",
-    isMedia: true, // يظهر زر التشغيل
-  },
-  {
-    id: 6,
-    type:"articles",
-    image: singleproductimg3,
-    title: "دليل استخدام منصة شجرة العائلة وتوثيق بيانات الأفراد والروابط الأسرية",
-    hijriDate: "01 صفر 1446",
-    gregorianDate: "06 أغسطس 2024",
-    time: "05:00 م",
-    isMedia: false,
-  },
-];
+// بيحسب عدد الصفحات من الـ meta اللي في رد الـ API (بيجرب أكتر من اسم محتمل)
+const getTotalPages = (blogData, response, page, postsCount) => {
+  const meta =
+    blogData?.pagination ?? blogData?.meta ?? response?.meta ?? response?.pagination;
 
-const categories = [
-  { id: "all", label: "الكل", icon: LayoutGrid },
-  { id: "news", label: "اخبار", icon: Newspaper },
-  { id: "articles", label: "مقالات", icon: Newspaper },
-  { id: "podcast", label: "بودكاست", icon: Mic },
-]
+  const last = meta?.lastPage ?? meta?.last_page ?? meta?.totalPages ?? meta?.total_pages;
+  if (last) return Number(last);
+
+  if (meta?.total) return Math.ceil(Number(meta.total) / PAGE_SIZE);
+
+  // مفيش meta: لو الصفحة الحالية ممتلئة نفترض إن فيه صفحة تانية
+  return postsCount >= PAGE_SIZE ? page + 1 : page;
+};
 
 export default function Blog() {
   const [activeTab, setActiveTab] = useState("all"); // الفلتر المحدد حالياً
-  const [articles, setArticles] = useState(mockArticles);
-  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const listRef = useRef(null);
 
+  const [persistentFilters, setPersistentFilters] = useState([]);
+
+  const { data: response, isLoading, error, isPlaceholderData } = useBlogs({
+    type: activeTab,
+    per_page: PAGE_SIZE,
+    page,
+  });
+
+  const blogData = response?.data;
+  const articles = blogData?.posts || [];
+  const totalPages = getTotalPages(blogData, response, page, articles.length);
+
+  // تحديث الفلاتر الثابتة أول ما تأتي البيانات من السيرفر لأول مرة
   useEffect(() => {
-    // محاكاة جلب البيانات من الـ Backend بناءً على الفلتر المختار
-    setIsLoading(true);
-    
-    // 💡 [عندما يجهز الباك]: استبدل السطور التالية بطلب Axios أو fetch حقيقي
-    // مثال: axios.get(`/api/posts?type=${activeTab === 'all' ? '' : activeTab}`)
-    
-    setTimeout(() => {
-      if (activeTab === "all") {
-        setArticles(mockArticles);
-      } else {
-        // فلترة محلية مؤقتة (في الباك إند السيرفر هو من سيقوم بهذه الفلترة)
-        const filtered = mockArticles.filter((item) => item.type === activeTab);
-        setArticles(filtered);
-      }
-      setIsLoading(false);
-    }, 300); // محاكاة سرعة السيرفر
+    if (blogData?.filters && persistentFilters.length === 0) {
+      setPersistentFilters(blogData.filters);
+    }
+  }, [blogData]);
 
-  }, [activeTab]); // يتنفذ الكود كلما تغير الـ Tab المختار
+  // تغيير الفلتر بيرجعنا للصفحة الأولى
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    setPage(1);
+  };
 
-return (
+  // تغيير الصفحة: ننزل/نطلع لأول القايمة عشان المستخدم يشوف النتايج الجديدة
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const getCategoryIcon = (key) => {
+    switch (key) {
+      case "news": return Newspaper;
+      case "article": return Newspaper;
+      case "podcast": return Mic;
+      default: return LayoutGrid;
+    }
+  };
+
+  return (
     <section className="min-h-screen max-w-7xl mx-auto px-4 py-12" dir="rtl">
-      
-      {/* 2. شريط الفلتر (Tabs) مطابق للصورة */}
-      <div className="w-full max-w-3xl mx-auto bg-white p-1.5 rounded-4xl lg:rounded-full shadow-sm flex flex-wrap md:flex-nowrap items-center justify-between gap-2 mb-10">
-        {categories.map((cat) => {
-          const Icon = cat.icon;
-          const isActive = activeTab === cat.id;
 
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setActiveTab(cat.id)}
-              className={`
-                flex-1 min-w-[150px] flex items-center justify-center gap-2 py-3 px-6 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer
-                ${
-                  isActive
-                    ? "bg-[#65A30D] text-white shadow-md" // الزر النشط بلون أخضر بارز داخل الكبسولة
-                    : "text-gray-600 hover:text-gray-900 bg-transparent hover:bg-gray-200/50" // الأزرار غير النشطة بدون إطار وبدون خلفية قوية
-                }
-              `}
-            >
-              <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-[#65A30D]"}`} />
-              <span>{cat.label}</span>
-            </button>
-          );
-        })}
+      {/* شريط الفلتر (Tabs) مبني ديناميكياً من الـ API */}
+      <div className="w-full max-w-xl mx-auto bg-white p-1.5 rounded-4xl lg:rounded-full shadow-sm flex flex-wrap md:flex-nowrap items-center justify-between gap-2 mb-10">
+        {persistentFilters.length > 0 ? (
+          persistentFilters.map((cat) => {
+            const Icon = getCategoryIcon(cat.key);
+            const isActive = activeTab === cat.key;
+
+            return (
+              <button
+                key={cat.key}
+                onClick={() => handleTabChange(cat.key)}
+                className={`
+                  flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 px-4 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer
+                  ${
+                    isActive
+                      ? "bg-[#65A30D] text-white shadow-md"
+                      : "text-gray-600 hover:text-gray-900 bg-transparent hover:bg-gray-200/50"
+                  }
+                `}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-[#3E3B36]"}`} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })
+        ) : (
+          // skeleton للتبويبات لحد ما الفلاتر توصل
+          Array.from({ length: 3 }, (_, i) => (
+            <Skeleton key={i} rounded="rounded-full" className="flex-1 min-w-[130px] h-11" />
+          ))
+        )}
       </div>
 
-      {/* 3. عرض المحتوى أو التحميل */}
-      {isLoading ? (
-        <div className="text-center py-20 text-gray-500 font-semibold">جاري التحميل...</div>
-      ) : articles.length === 0 ? (
-        <div className="text-center py-20 text-gray-500 font-semibold">لا توجد عناصر متاحة حالياً.</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.map((item) => (
-            <SingleProductCard
-              key={item.id}
-              image={item.image}
-              title={item.title}
-              hijriDate={item.hijriDate}
-              gregorianDate={item.gregorianDate}
-              time={item.time}
-              isMedia={item.isMedia}
-              href={`/singlePodcast`}
-            />
-          ))}
-        </div>
-      )}
+      {/* القايمة + الترقيم (listRef هو نقطة الرجوع عند تغيير الصفحة) */}
+      <div ref={listRef} className="scroll-mt-28">
+        {/* عرض المحتوى أو التحميل أو الأخطاء */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }, (_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 text-red-500 font-semibold">عذراً، حدث خطأ أثناء تحميل البيانات من السيرفر.</div>
+        ) : articles.length === 0 ? (
+          <div className="text-center py-20 text-gray-500 font-semibold">لا توجد عناصر متاحة في هذا القسم حالياً.</div>
+        ) : (
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity ${isPlaceholderData ? 'opacity-60' : ''}`}>
+            {articles.map((item) => (
+              <SingleProductCard
+                key={item.id}
+                image={item.imageUrl || ''} // سيأخذ الصورة القادمة من الـ API أو يتركها للـ Fallback
+                title={item.title}
+                date={item.date}
+                time={item.publishedTime || ''}
+                isMedia={item.hasVideo} // ربط زر التشغيل بـ hasVideo القادمة من الـ API
+                href={item.postType === 'podcast' ? `/podcast/${item.id}` : `/news/${item.id}`}
+              />
+            ))}
+          </div>
+        )}
 
+        {/* ترقيم الصفحات: مش بيظهر لو صفحة واحدة بس */}
+        {!isLoading && !error && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={handlePageChange}
+            className="mt-12"
+          />
+        )}
+      </div>
     </section>
   );
 }
