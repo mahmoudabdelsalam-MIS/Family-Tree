@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
+import { X } from 'lucide-react';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -9,9 +11,7 @@ import TestimonialCard from '../../shared/cards/TestimonialCard';
 import NavArrowButton from '../../shared/button/NavArrowButton';
 import SectionTitle from '../../shared/headers/SectionTitle';
 
-import {man1 , backgroundNav} from '../../../assets/assets'
-
-
+import { man1, backgroundNav } from '../../../assets/assets';
 
 const logoPositions = [
   'top-20 right-46 w-30 h-30',
@@ -23,9 +23,50 @@ const logoPositions = [
   'bottom-8 right-95 w-28 h-28',
 ];
 
-// الداتا كلها جاية من Home: آراء العملاء (clientReviews) والشركاء (partners)
+// مكان دايرة "باقي الشركاء" (المكان اللي متحدد على اليسار)، غيّر القيم لو عايز تحركها
+const moreCirclePosition = 'top-[120px] left-0 w-20 h-20';
+
+// تجهيز رابط الصورة (نفس المنطق القديم بس في مكان واحد عشان نستخدمه في الدواير والمودال)
+const getImageUrl = (image) => {
+  if (!image) return '';
+  return image.startsWith('http')
+    ? image
+    : `https://new.familiesapp.net${image.startsWith('/') ? '' : '/'}${image}`;
+};
+
+const getPartnerName = (company) =>
+  company?.ar_title || company?.title || company?.name || 'شريك نجاح';
+
 export default function TestimonialsSection({ clientReviews = [], partners = [] }) {
-  const testimonialsData = clientReviews || [];  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const testimonialsData = clientReviews || [];
+  const safePartners = Array.isArray(partners) ? partners.filter(Boolean) : [];
+
+  // فلترة الشركاء (أخذ المثبتين pinStatus === '1' أو القصر على العدد المتاح في logoPositions لتجنب أي كسر في البوزيشن)
+  const pinnedPartners = safePartners.filter(p => p.pinStatus === '1');
+  const activePartners = (pinnedPartners.length > 0 ? pinnedPartners : safePartners).slice(0, logoPositions.length);
+
+  // باقي الشركاء: أي شريك مش معروض في الدواير المبعثرة
+  const remainingPartners = safePartners.filter((p) => !activePartners.includes(p));
+
+  // قفل سكرول الصفحة + إغلاق المودال بزر Esc
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen]);
 
   return (
     <section className='bg-secondaryBgColor py-16 px-6 md:px-20 relative overflow-hidden' dir='rtl'>
@@ -41,18 +82,34 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
             className='absolute inset-0 w-full h-full object-cover object-center contrast-150 pointer-events-none select-none'
           />
 
-          {partners?.map((company, index) => (
-            <div
-              key={company.id}
-              className={`absolute ${logoPositions[index]} rounded-full bg-white shadow-md flex items-center justify-center p-4`}
+          {activePartners.map((company, index) => {
+            const imageUrl = getImageUrl(company?.image);
+
+            return (
+              <div
+                key={company?.id || index}
+                className={`absolute ${logoPositions[index]} rounded-full bg-white shadow-md flex items-center justify-center p-4`}
+              >
+                <img
+                  src={imageUrl}
+                  alt={getPartnerName(company)}
+                  className='w-full h-full object-contain rounded-full'
+                />
+              </div>
+            );
+          })}
+
+          {/* دايرة باقي الشركاء: بتظهر بس لو في شركاء زيادة */}
+          {remainingPartners.length > 0 && (
+            <button
+              type='button'
+              onClick={() => setIsModalOpen(true)}
+              aria-label={`عرض باقي الشركاء (${remainingPartners.length})`}
+              className={`absolute ${moreCirclePosition} rounded-full bg-primary text-white shadow-md flex items-center justify-center text-xl font-bold cursor-pointer hover:scale-105 transition-transform duration-300`}
             >
-            <img
-                src={company.image?.startsWith('http') ? company.image : `https://new.familiesapp.net${company.image?.startsWith('/') ? '' : '/'}${company.image}`}
-                alt={company.title}
-                className='w-full h-full object-contain rounded-full'
-              />
-            </div>
-          ))}
+              <span dir='ltr'>+{remainingPartners.length}</span>
+            </button>
+          )}
         </div>
 
         {/* عمود النصوص والكروت باستخدام Swiper */}
@@ -68,7 +125,6 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
           {testimonialsData.length === 0 ? (
             <div className='py-8 text-center text-gray-500'>لا توجد آراء متاحة حالياً.</div>
           ) : (
-            /* سلايدر الاراء */
             <Swiper
               modules={[Navigation, Autoplay]}
               spaceBetween={16}
@@ -89,18 +145,17 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
                   <SwiperSlide key={slideIndex}>
                     <div className='flex flex-col gap-4'>
                       <TestimonialCard
-                        name={firstItem.name}
-                        // استخدام الـ avatarUrl القادم من الـ API، ولو مش موجود بنسيب الـ fallback (man1)
-                        avatar={firstItem.avatarUrl || man1}
-                        rating={firstItem.rating}
-                        text={firstItem.body}
+                        name={firstItem?.name}
+                        avatar={firstItem?.avatarUrl || man1}
+                        rating={firstItem?.rating}
+                        text={firstItem?.body}
                       />
                       {secondItem && (
                         <TestimonialCard
-                          name={secondItem.name}
-                          avatar={secondItem.avatarUrl || man1}
-                          rating={secondItem.rating}
-                          text={secondItem.body}
+                          name={secondItem?.name}
+                          avatar={secondItem?.avatarUrl || man1}
+                          rating={secondItem?.rating}
+                          text={secondItem?.body}
                         />
                       )}
                     </div>
@@ -118,12 +173,101 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
             </div>
             <div className='swiper-testimonials-next cursor-pointer'>
               <NavArrowButton type='prev' />
-            </div>
+            </div> 
           </div>
 
         </div>
 
       </div>
+
+      {/* مودال باقي الشركاء (بيتعرض على body عشان overflow-hidden بتاع السكشن ميقصوش) */}
+      {isModalOpen &&
+        createPortal(
+          <div
+            className='fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4'
+            dir='rtl'
+            onClick={() => setIsModalOpen(false)}
+            role='dialog'
+            aria-modal='true'
+            aria-label='باقي الشركاء'
+          >
+            <div
+              className='bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden'
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* رأس المودال */}
+              <div className='flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0'>
+                <button
+                  type='button'
+                  onClick={() => setIsModalOpen(false)}
+                  aria-label='إغلاق'
+                  className='w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-gray-600 cursor-pointer'
+                >
+                  <X size={18} />
+                </button>
+                <h3 className='text-lg font-bold text-secondary'>باقي الشركاء</h3>
+              </div>
+
+              {/* قايمة الشركاء: اللوجو على اليمين واسم الشركة جنبه */}
+              <ul className='flex flex-col gap-3 p-4 pl-2 ml-3 my-3 overflow-y-auto partners-scroll'>
+                {remainingPartners.map((company, index) => (
+                  <li
+                    key={company?.id || index}
+                    className='flex items-center gap-4 bg-gray-50 rounded-2xl p-3'
+                  >
+                    <div className='w-16 h-16 shrink-0 rounded-full bg-white shadow-sm flex items-center justify-center p-2'>
+                      <img
+                        src={getImageUrl(company?.image)}
+                        alt={getPartnerName(company)}
+                        className='w-full h-full object-contain rounded-full'
+                      />
+                    </div>
+                    <span className='font-semibold text-sm sm:text-base text-gray-700'>
+                      {getPartnerName(company)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+<style>{`
+                /* 1. إخفاء أسهم الـ Scrollbar تماماً */
+                .partners-scroll::-webkit-scrollbar-button {
+                  display: none !important;
+                  width: 0;
+                  height: 0;
+                }
+
+                .partners-scroll::-webkit-scrollbar {
+                  width: 6px;
+                }
+
+                .partners-scroll::-webkit-scrollbar-track {
+                  background: transparent; /* خلفية شفافة لعدم التشويش */
+                  border-radius: 10px;
+                }
+
+                .partners-scroll::-webkit-scrollbar-thumb {
+                  background: #d1d5db; /* gray-300 (أغمق سيكا) */
+                  border-radius: 10px;
+                  border: 2px solid transparent;
+                  background-clip: padding-box;
+                }
+
+                .partners-scroll::-webkit-scrollbar-thumb:hover {
+                  background: #9ca3af; /* gray-400 (أغمق عند التمرير) */
+                  background-clip: padding-box;
+                }
+
+                /* دعم متصفح فايرفوكس */
+                .partners-scroll {
+                  scrollbar-width: thin;
+                  scrollbar-color: #d1d5db transparent;
+                }
+              `}</style>
+            </div>
+          </div>,
+          document.body
+        )}
     </section>
   );
 }

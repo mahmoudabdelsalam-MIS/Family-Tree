@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone } from 'lucide-react';
-import { FaFacebookF, FaSnapchat, FaXTwitter, FaWhatsapp, FaInstagram, FaLinkedinIn } from 'react-icons/fa6';
-import {logo , footerBg} from '../../../assets/assets'
+import { FaFacebookF, FaSnapchat, FaXTwitter, FaWhatsapp, FaInstagram, FaLinkedinIn, FaYoutube, FaTiktok } from 'react-icons/fa6';
+import { logo, footerBg } from '../../../assets/assets';
 import IconCircle from '../Icons/IconCircle';
-import { useContactPage } from '../../../hooks/useContactPage';
+import { useSocialLinks } from '../../../hooks/useSocialLinks'; // استدعاء الـ Hook الجديد
 
-/* ---------- بيانات الفوتر  ---------- */
+/* ---------- بيانات الفوتر ---------- */
 
 const browseLinks = [
   { title: 'من نحن', path: '/aboutUs' },
@@ -24,16 +24,7 @@ const importantLinks = [
   { title: 'تواصل معنا', path: '/contactUs' },
 ];
 
-const socials = [
-  { label: 'فيسبوك', icon: <FaFacebookF />, href: 'https://facebook.com' },
-  { label: 'سناب شات', icon: <FaSnapchat />, href: 'https://snapchat.com' },
-  { label: 'إكس', icon: <FaXTwitter />, href: 'https://x.com' },
-  { label: 'واتساب', icon: <FaWhatsapp />, href: 'https://wa.me/966500000000' },
-  { label: 'إنستجرام', icon: <FaInstagram />, href: 'https://instagram.com' },
-  { label: 'لينكدإن', icon: <FaLinkedinIn />, href: 'https://linkedin.com' },
-];
-
-// القيم الافتراضية: بتتعرض لو الـ API مرجّعش الداتا (أو رجّعها null)
+// القيم الافتراضية: لو الـ API مرجّعش بيانات
 const phones = ['+966 50X021234', '+966 20X021234'];
 const DEFAULT_ADDRESS = 'حي الحمراء طريق الإمام عبدالله بن سعود بن عبدالعزيز';
 
@@ -41,7 +32,7 @@ const DEFAULT_ADDRESS = 'حي الحمراء طريق الإمام عبدالل�
 const getSafeUrl = (value) =>
   typeof value === 'string' && /^https?:\/\//i.test(value.trim()) ? value.trim() : null;
 
-// "966530976737" -> "+966530976737" (أرقام بس)
+// تطبيع رقم الهاتف للأرقام فقط
 const normalizePhone = (value) => {
   const digits = String(value ?? '').replace(/\D/g, '');
   return digits ? `+${digits}` : null;
@@ -78,30 +69,31 @@ function FooterLinks({ links }) {
 /* ---------- الفوتر ---------- */
 
 export default function Footer() {
-  const { data: response } = useContactPage('ar');
+  const { data: response } = useSocialLinks();
 
-  // قنوات التواصل من الـ API (نفس داتا صفحة تواصل معنا، ومتخزنة في الكاش)
-  const channels = Array.isArray(response?.data?.channels) ? response.data.channels : [];
-  const findChannel = (type) => channels.find((c) => c?.type === type) || {};
-  const whatsapp = findChannel('whatsapp');
-  const location = findChannel('location');
+  // استخراج البيانات القادمة من الاستجابة الجديدة
+  const socialLinksData = response?.socialLinks || {};
+  const callUsData = response?.callUs || {};
 
-  // الهاتف: رقم الواتساب من الـ API، وإلا الأرقام الافتراضية
-  const apiPhone = normalizePhone(whatsapp.phone);
+  // الهواتف والواتساب القادمة من الـ API (callUs)
+  const apiPhone = normalizePhone(callUsData.phone);
   const footerPhones = apiPhone ? [apiPhone] : phones;
+  const whatsappUrl = socialLinksData.whatsapp ? getSafeUrl(socialLinksData.whatsapp) : (apiPhone ? `https://wa.me/${apiPhone.slice(1)}` : null);
 
-  // لينك الواتساب: actionUrl، وإلا wa.me برقم الهاتف
-  const whatsappUrl =
-    getSafeUrl(whatsapp.actionUrl) || (apiPhone ? `https://wa.me/${apiPhone.slice(1)}` : null);
+  // العنوان باستخدام إحداثيات أو بيانات الـ callUs (أو الافتراضي)
+  const addressText = callUsData.address_subtitle || callUsData.address_title || DEFAULT_ADDRESS;
+  const mapUrl = callUsData.lat && callUsData.long ? `https://maps.google.com/?q=${callUsData.lat},${callUsData.long}` : null;
 
-  // العنوان: لو الـ API بعت نص (subtitle أو title) نعرضه، وإلا العنوان الافتراضي
-  const addressText = location.subtitle || location.title || DEFAULT_ADDRESS;
-  const mapUrl = getSafeUrl(location.actionUrl);
-
-  // السوشيال: بنبدّل لينك الواتساب بس، والباقي زي ما هو
-  const footerSocials = socials.map((item) =>
-    item.label === 'واتساب' && whatsappUrl ? { ...item, href: whatsappUrl } : item
-  );
+  // تجهيز مصفوفة السوشيال ميديا ديناميكياً بناءً على الـ API
+  // ملحوظة: الـ API يرجع فيسبوك كمثال لرابط تيكتوك أو روابط أخرى حسب الداتا المرفقة
+  const socials = [
+    { label: 'فيسبوك', icon: <FaFacebookF />, href: getSafeUrl(socialLinksData.facebook) },
+    { label: 'سناب شات', icon: <FaSnapchat />, href: getSafeUrl(socialLinksData.snapchat) },
+    { label: 'إكس', icon: <FaXTwitter />, href: getSafeUrl(socialLinksData.twitter) },
+    { label: 'واتساب', icon: <FaWhatsapp />, href: whatsappUrl },
+    { label: 'إنستجرام', icon: <FaInstagram />, href: getSafeUrl(socialLinksData.instagram) },
+    { label: 'لينكدإن ', icon: <FaLinkedinIn />, href: getSafeUrl(socialLinksData.linkedIn) },
+  ].filter((item) => item.href); // عرض فقط اللينكات المتاحة
 
   return (
     <footer dir="rtl" className="font-primary w-full">
@@ -127,7 +119,7 @@ export default function Footer() {
                 className="w-full h-full object-contain select-none"
               />
             </Link>
-            <p className=" leading-7 text-gray-800 text-sm font-semibold">
+            <p className="leading-7 text-gray-800 text-sm font-semibold">
               هناك حقيقة مثبتة منذ زمن طويل وهي أن المحتوى المقروء لصفحة ما سيلهي القارئ عن
               التركيز على الشكل الخارجي للنص أو شكل توضع الفقرات في الصفحة التي يقرأها.
             </p>
@@ -143,7 +135,7 @@ export default function Footer() {
 
           <FooterColumn title="اتصل بنا">
             <div className="flex flex-col gap-5">
-              {/* العنوان (بيفتح الخريطة لو الـ API بعت لينك الموقع) */}
+              {/* العنوان */}
               <div className="flex items-start gap-3">
                 <IconCircle icon={<MapPin size={16} />} size="sm" label="العنوان" />
                 {mapUrl ? (
@@ -180,8 +172,8 @@ export default function Footer() {
               {/* السوشيال */}
               <div className="flex items-center flex-wrap gap-3 pt-2">
                 <span className="text-sm font-bold text-gray-800 ml-1">تابعنا :</span>
-                {footerSocials.map((item) => (
-                  <IconCircle key={item.label} {...item} size='sm'/>
+                {socials.map((item) => (
+                  <IconCircle key={item.label} {...item} size='sm' />
                 ))}
               </div>
             </div>

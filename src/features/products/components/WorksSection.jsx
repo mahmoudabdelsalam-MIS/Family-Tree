@@ -8,7 +8,7 @@ import SectionTitle from '../../shared/headers/SectionTitle';
 import Skeleton from '../../shared/skeleton/Skeleton';
 import CardSkeleton from '../../shared/skeleton/CardSkeleton';
 
-import { useServicesCatalog } from '../../../hooks/useServicesCatalog';
+import { useServicesCatalog, useServicesList } from '../../../hooks/useServicesCatalog';
 
 export default function WorksSection({ initialData, categoryIdFromUrl: propCategoryId, isLoading }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,12 +16,26 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
 
   // نستخدم الـ Hook كخطة احتياطية، لكن نعطي الأولوية للبيانات القادمة من الأب
   const { data: catalogResponse } = useServicesCatalog(categoryIdFromUrl);
+  // قايمة الخدمات الكاملة (هي مصدر كروت الخدمات)
+  const { data: servicesResponse, isLoading: isServicesLoading } = useServicesList();
+
   const catalogData = initialData || catalogResponse?.data || {};
-  
+
   const categories = catalogData.categories || [];
-  const services = catalogData.services || [];
   const showcase = catalogData.showcase || {};
   const activeCategoryId = categoryIdFromUrl || catalogData.activeCategoryId || categories[0]?.id;
+
+  // كروت الخدمات: من useServicesList، بتتفلتر على التصنيف النشط.
+  // الخدمة اللي من غير تصنيف (categoryId = null) بتظهر في كل التبويبات لحد ما الباك إند يربطها بتصنيف.
+  // لو القايمة ماجتش (خطأ مثلاً) بنرجع لخدمات الكتالوج الاحتياطية.
+  const servicesList = Array.isArray(servicesResponse?.data) ? servicesResponse.data : null;
+  const services = servicesList
+    ? servicesList.filter(
+        (service) =>
+          service &&
+          (!activeCategoryId || !service.categoryId || service.categoryId === activeCategoryId)
+      )
+    : catalogData.services || [];
 
   // تحويل showcase.imageUrls إلى الصيغة التي يفهمها ProjectsGrid
   const showcaseProjects = (showcase.imageUrls || []).map((url, index) => ({
@@ -37,7 +51,7 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
   return (
     <section className="py-16 px-4 md:px-6" dir="rtl">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
-        
+
         {/* 1. تبويبات التصنيفات (Tabs) */}
         <div className="w-full max-w-xl mx-auto bg-white p-2 rounded-4xl lg:rounded-full shadow-sm flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
           {isLoading ? (
@@ -67,10 +81,10 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
 
         {/* 2. المحتوى الرئيسي */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* عمود الخدمات (Services) */}
           <div className="lg:col-span-5 flex flex-wrap justify-center items-start gap-4 w-full">
-            {isLoading ? (
+            {isLoading || isServicesLoading ? (
               // استخدام CardSkeleton لمطابقة شكل الكارت الحقيقي تماماً
               <>
                 <CardSkeleton className="w-full sm:w-[calc(50%-8px)] lg:w-full" />
@@ -99,12 +113,12 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
           <div className="lg:col-span-7 w-full lg:border-r-2 lg:pr-10 lg:border-gray-300">
             <div className="mb-10">
               <SectionTitle
-              subtitle="ما تود طلبه" 
-              title="من" 
+              subtitle="ما تود طلبه"
+              title="من"
               highlightedText="اعمالنا"
               />
             </div>
-            
+
             {isLoading ? (
               // Skeleton لشبكة المشاريع (بنفس أبعاد ProjectsGrid)
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
