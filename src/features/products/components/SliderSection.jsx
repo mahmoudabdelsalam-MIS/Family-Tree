@@ -7,19 +7,41 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import NavArrowButton from '../../shared/button/NavArrowButton';
 
-// الميديا فيديو لو الباك بعت mediaType = video، أو لو الرابط نفسه بينتهي بامتداد فيديو (احتياطي)
-const isVideoSlide = (slide) =>
-  slide?.mediaType === 'video' || /\.(mp4|webm|mov)(\?.*)?$/i.test(slide?.mediaUrl || '');
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v|ogv)(\?.*)?$/i;
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|svg|bmp)(\?.*)?$/i;
+
+// تحديد نوع ميديا السلايد: صورة (وده بيشمل الـ GIF المتحرك) أو فيديو
+// الأولوية لامتداد الرابط (لأنه أدق)، وبعدها mediaType اللي جاي من الباك
+// ولو مفيش رابط ميديا (زي فيديو لسه ما اترفعش) بنستخدم posterUrl كصورة
+const resolveSlideMedia = (slide) => {
+  const url = slide?.mediaUrl;
+
+  if (url) {
+    if (VIDEO_EXT.test(url)) return { type: 'video', src: url, poster: slide.posterUrl || '' };
+    if (IMAGE_EXT.test(url)) return { type: 'image', src: url };
+    if (slide?.mediaType === 'video') return { type: 'video', src: url, poster: slide.posterUrl || '' };
+    return { type: 'image', src: url };
+  }
+
+  if (slide?.posterUrl) return { type: 'image', src: slide.posterUrl };
+  return null;
+};
 
 export default function ImageBannerSlider({ heroSlides = [] }) {
   const swiperRef = useRef(null);
 
+  // السلايدات اللي ليها ميديا فعلاً (صورة أو gif أو فيديو)
+  const slides = (Array.isArray(heroSlides) ? heroSlides : [])
+    .filter(Boolean)
+    .map((slide) => ({ slide, media: resolveSlideMedia(slide) }))
+    .filter((item) => item.media);
+
   // لو مفيش بيانات، منع_render_ عشان متظهرش مساحة فاضية
-  if (!heroSlides || heroSlides.length === 0) {
+  if (slides.length === 0) {
     return null;
   }
 
-  const hasMultipleSlides = heroSlides.length > 1;
+  const hasMultipleSlides = slides.length > 1;
 
   // بيظبط الـ autoplay حسب السلايد الحالي:
   // - صورة: الـ autoplay شغال وبيقلب بعد 4 ثواني
@@ -74,16 +96,16 @@ export default function ImageBannerSlider({ heroSlides = [] }) {
         onSlideChange={syncAutoplay}
         className="rounded-3xl md:rounded-4xl overflow-hidden shadow-lg w-full"
       >
-        {heroSlides.map((slide, index) => (
+        {slides.map(({ slide, media }, index) => (
           <SwiperSlide key={slide.id ?? index}>
             {/* حاوية الميديا: relative عشان نقدر نحط النص فوقها لو احتجنا */}
             <div className="relative w-full h-[220px] sm:h-[320px] md:h-[420px] overflow-hidden rounded-3xl bg-gray-100">
 
               {/* 1. التحقق لو الميديا فيديو */}
-              {isVideoSlide(slide) ? (
+              {media.type === 'video' ? (
                 <video
-                  src={slide.mediaUrl}
-                  poster={slide.posterUrl || ''}
+                  src={media.src}
+                  poster={media.poster}
                   muted
                   playsInline
                   preload="auto"
@@ -96,12 +118,31 @@ export default function ImageBannerSlider({ heroSlides = [] }) {
                   className="w-full h-full object-cover object-center"
                 />
               ) : (
-                /* 2. الافتراضي: صورة */
+                /* 2. الافتراضي: صورة (والـ GIF بيتحرك لوحده لأنه <img>) */
                 <img
-                  src={slide.mediaUrl}
+                  src={media.src}
                   alt={slide.title || 'Banner slide'}
                   className="w-full h-full object-cover object-center"
                 />
+              )}
+
+              {/* النص فوق الميديا (title / subtitle / caption): بيظهر بس لو الباك بعت أي حاجة منهم
+                  ومعاه ظل من تحت لفوق عشان النص يبان، ولو مفيش نص مفيش ظل */}
+              {(slide.title || slide.subtitle || slide.caption) && (
+                <>
+                  <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/75 via-black/25 to-transparent pointer-events-none" />
+                  <div className={`absolute inset-x-0 bottom-0 z-10 px-5 md:px-8 pt-6 text-right text-white pointer-events-none ${hasMultipleSlides ? 'pb-10 md:pb-12' : 'pb-5 md:pb-8'}`}>
+                    {slide.title && (
+                      <h2 className="text-xl md:text-3xl font-bold leading-tight">{slide.title}</h2>
+                    )}
+                    {slide.subtitle && (
+                      <p className="mt-1 text-sm md:text-lg font-medium text-white/90">{slide.subtitle}</p>
+                    )}
+                    {slide.caption && (
+                      <p className="mt-1 text-xs md:text-base font-light text-white/80">{slide.caption}</p>
+                    )}
+                  </div>
+                </>
               )}
 
             </div>
