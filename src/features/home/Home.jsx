@@ -27,7 +27,11 @@ export default function Home() {
   const reviewsData = pageData.clientReviews || [];
   const projectsData = pageData.projects || [];
   const featuresData = pageData.highlights || [];
-  const partnersData = legacyData.partners || [];
+  const familyIdeasPlatform = pageData.familyIdeasPlatform || [];  
+  // الشركاء: المميزين (الدواير) وباقي الشركاء (المودال)
+  const featuredPartners = pageData.featuredPartners || legacyData.featuredPartners || [];
+  const morePartners = pageData.morePartners || legacyData.morePartners || [];
+
 
   if (isLoading) {
     return (
@@ -60,9 +64,10 @@ export default function Home() {
         heroSlides={headerData.heroSlides} 
         heroCards={headerData.heroCards}
         heroPromo={headerData.heroPromo}
+        familyIdeasPlatform={familyIdeasPlatform}
       /> 
       <FamilyTreeSection data={aboutData} />
-      <TestimonialsSection clientReviews={reviewsData} partners={partnersData} />
+      <TestimonialsSection clientReviews={reviewsData} featuredPartners={featuredPartners} morePartners={morePartners} />
       <ProjectsSection data={projectsData} />
       <FaqSection faqs={faqsData} />
       <FeaturesScrollSection highlights={featuresData} />

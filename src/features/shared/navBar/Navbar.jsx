@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {logo} from '../../../assets/assets'
-import { Menu, X, Moon, Sun, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useServiceCategories } from '../../../hooks/useHome';
 
 const navLinks = [
@@ -31,47 +31,13 @@ function LanguageButton({ currentLang, onToggle }) {
   );
 }
 
-/* ---------- زر الثيم ---------- */
-function ThemeToggle({ isDark, onToggle }) {
-  return (
-    <button
-      dir="ltr"
-      onClick={onToggle}
-      aria-label="تغيير الثيم"
-      className={`relative w-20 h-8 rounded-full overflow-hidden transition-colors duration-300 cursor-pointer shrink-0
-        ${isDark ? 'bg-[#0b2a4a]' : 'bg-sky-300'}`}
-    >
-      {isDark && (
-        <>
-          <span className="absolute top-2 left-3 w-1 h-1 bg-white rounded-full" />
-          <span className="absolute top-4 left-6 w-0.5 h-0.5 bg-white rounded-full" />
-          <span className="absolute top-2 left-10 w-1 h-1 bg-white rounded-full" />
-          <span className="absolute top-5 left-13 w-0.5 h-0.5 bg-white rounded-full" />
-        </>
-      )}
-      <span
-        className={`absolute top-0.5 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300
-          ${isDark ? 'left-[calc(100%-1.85rem)] bg-gray-300 text-gray-600' : 'left-0.5 bg-yellow-300 text-yellow-600'}`}
-      >
-        {isDark ? <Moon size={15} /> : <Sun size={15} />}
-      </span>
-    </button>
-  );
-}
-
 /* ---------- الناف بار الرئيسي ---------- */
 export default function Navbar() {
   const { data: response, isLoading, error } = useServiceCategories();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [lang, setLang] = useState('en'); 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
-
-  const toggleTheme = () => {
-    setIsDark((prev) => !prev);
-    document.documentElement.classList.toggle('dark');
-  };
 
   const toggleLanguage = () => {
     setLang((prev) => (prev === 'ar' ? 'en' : 'ar'));
@@ -90,9 +56,9 @@ export default function Navbar() {
       <nav className="bg-white max-w-[1320px] py-1.5 mx-auto shadow-sm rounded-xl">
         <div className="flex justify-between items-center px-6 py-2">
           
-          {/* أدوات الهيدر (الثيم، اللغة) - جهة اليسار */}
-          <div className="hidden lg:flex items-center gap-3">
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          {/* أدوات الهيدر (اللغة) - جهة اليسار */}
+          {/* flex-1 بتخلي العمود ده والعمود اللي فيه اللوجو بنفس العرض فالروابط تفضل في النص بالظبط */}
+          <div className="hidden lg:flex flex-1 items-center gap-3">
             <LanguageButton currentLang={lang} onToggle={toggleLanguage} />
             <span className="w-0.5 h-5 rounded-full bg-gray-300 mx-1" />
           </div>
@@ -165,15 +131,17 @@ export default function Navbar() {
           </div>
 
           {/* اللوجو - جهة اليمين */}
-          <div className="w-28 h-auto shrink-0">
-            <Link to="/">
-              <img
-                src={logo}
-                alt="العائلة"
-                draggable="false"
-                className="w-full h-full object-contain select-none cursor-pointer"
-              />
-            </Link>
+          <div className="lg:flex-1 flex justify-end">
+            <div className="w-28 h-auto shrink-0">
+              <Link to="/">
+                <img
+                  src={logo}
+                  alt="العائلة"
+                  draggable="false"
+                  className="w-full h-full object-contain select-none cursor-pointer"
+                />
+              </Link>
+            </div>
           </div>
 
           {/* زر قائمة الموبايل */}
@@ -237,8 +205,7 @@ export default function Navbar() {
             ))}
 
             {/* أدوات الموبايل */}
-            <div className="flex items-center justify-around pt-4 mt-2 border-t border-gray-100">
-              <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            <div className="flex items-center justify-center pt-4 mt-2 border-t border-gray-100">
               <LanguageButton currentLang={lang} onToggle={toggleLanguage} />
             </div>
           </div>

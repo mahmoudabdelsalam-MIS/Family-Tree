@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone } from 'lucide-react';
-import { FaFacebookF, FaSnapchat, FaXTwitter, FaWhatsapp, FaInstagram, FaLinkedinIn, FaYoutube, FaTiktok } from 'react-icons/fa6';
+import { FaFacebookF, FaSnapchat, FaXTwitter, FaWhatsapp, FaInstagram, FaLinkedinIn } from 'react-icons/fa6';
 import { logo, footerBg } from '../../../assets/assets';
 import IconCircle from '../Icons/IconCircle';
-import { useSocialLinks } from '../../../hooks/useSocialLinks'; // استدعاء الـ Hook الجديد
+import { useSocialLinks } from '../../../hooks/useSocialLinks'; 
+import { useAboutCompany } from '../../../hooks/useFooterData';
 
 /* ---------- بيانات الفوتر ---------- */
 
@@ -24,9 +25,10 @@ const importantLinks = [
   { title: 'تواصل معنا', path: '/contactUs' },
 ];
 
-// القيم الافتراضية: لو الـ API مرجّعش بيانات
-const phones = ['+966 50X021234', '+966 20X021234'];
+// القيم الافتراضية الاحتياطية
+const DEFAULT_DESCRIPTION = 'هناك حقيقة مثبتة منذ زمن طويل وهي أن المحتوى المقروء لصفحة ما سيلهي القارئ عن التركيز على الشكل الخارجي للنص أو شكل توضع الفقرات في الصفحة التي يقرأها.';
 const DEFAULT_ADDRESS = 'حي الحمراء طريق الإمام عبدالله بن سعود بن عبدالعزيز';
+const phones = ['+966 50X021234'];
 
 // بيقبل بس لينكات http/https حقيقية
 const getSafeUrl = (value) =>
@@ -69,31 +71,33 @@ function FooterLinks({ links }) {
 /* ---------- الفوتر ---------- */
 
 export default function Footer() {
-  const { data: response } = useSocialLinks();
+  const { data: socialResponse } = useSocialLinks();
+  const { data: aboutCompanyResponse } = useAboutCompany(); // جلب بيانات عن الشركة
 
-  // استخراج البيانات القادمة من الاستجابة الجديدة
-  const socialLinksData = response?.socialLinks || {};
-  const callUsData = response?.callUs || {};
+  // استخراج البيانات
+  const socialLinksData = socialResponse?.socialLinks || {};
+  const aboutCompanyData = aboutCompanyResponse?.data || {};
 
-  // الهواتف والواتساب القادمة من الـ API (callUs)
-  const apiPhone = normalizePhone(callUsData.phone);
+  // الوصف القادم من الـ API أو الافتراضي
+  const footerDescription = aboutCompanyData.description || DEFAULT_DESCRIPTION;
+
+  // الهاتف (من الـ aboutCompany أو الـ fallback)
+  const apiPhone = normalizePhone(aboutCompanyData.whatsappNumber);
   const footerPhones = apiPhone ? [apiPhone] : phones;
   const whatsappUrl = socialLinksData.whatsapp ? getSafeUrl(socialLinksData.whatsapp) : (apiPhone ? `https://wa.me/${apiPhone.slice(1)}` : null);
 
-  // العنوان باستخدام إحداثيات أو بيانات الـ callUs (أو الافتراضي)
-  const addressText = callUsData.address_subtitle || callUsData.address_title || DEFAULT_ADDRESS;
-  const mapUrl = callUsData.lat && callUsData.long ? `https://maps.google.com/?q=${callUsData.lat},${callUsData.long}` : null;
+  // العنوان (من الـ title القادم من about-company أو الافتراضي)
+  const addressText = aboutCompanyData.title || DEFAULT_ADDRESS;
 
-  // تجهيز مصفوفة السوشيال ميديا ديناميكياً بناءً على الـ API
-  // ملحوظة: الـ API يرجع فيسبوك كمثال لرابط تيكتوك أو روابط أخرى حسب الداتا المرفقة
+  // السوشيال ميديا
   const socials = [
     { label: 'فيسبوك', icon: <FaFacebookF />, href: getSafeUrl(socialLinksData.facebook) },
     { label: 'سناب شات', icon: <FaSnapchat />, href: getSafeUrl(socialLinksData.snapchat) },
     { label: 'إكس', icon: <FaXTwitter />, href: getSafeUrl(socialLinksData.twitter) },
     { label: 'واتساب', icon: <FaWhatsapp />, href: whatsappUrl },
     { label: 'إنستجرام', icon: <FaInstagram />, href: getSafeUrl(socialLinksData.instagram) },
-    { label: 'لينكدإن ', icon: <FaLinkedinIn />, href: getSafeUrl(socialLinksData.linkedIn) },
-  ].filter((item) => item.href); // عرض فقط اللينكات المتاحة
+    { label: 'لينكدإن', icon: <FaLinkedinIn />, href: getSafeUrl(socialLinksData.linkedIn) },
+  ].filter((item) => item.href);
 
   return (
     <footer dir="rtl" className="font-primary w-full">
@@ -109,7 +113,7 @@ export default function Footer() {
         <div className="absolute inset-0 bg-white/75 backdrop-blur-[2px]" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 py-12 grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.6fr]">
-          {/* اللوجو والوصف */}
+          {/* اللوجو والوصف (مربوط بـ description القادم من about-company) */}
           <div className="flex flex-col gap-5 max-w-sm">
             <Link to="/" className="w-40">
               <img
@@ -120,8 +124,7 @@ export default function Footer() {
               />
             </Link>
             <p className="leading-7 text-gray-800 text-sm font-semibold">
-              هناك حقيقة مثبتة منذ زمن طويل وهي أن المحتوى المقروء لصفحة ما سيلهي القارئ عن
-              التركيز على الشكل الخارجي للنص أو شكل توضع الفقرات في الصفحة التي يقرأها.
+              {footerDescription}
             </p>
           </div>
 
@@ -135,26 +138,15 @@ export default function Footer() {
 
           <FooterColumn title="اتصل بنا">
             <div className="flex flex-col gap-5">
-              {/* العنوان */}
+              {/* العنوان (مربوط بـ title القادم من about-company) */}
               <div className="flex items-start gap-3">
                 <IconCircle icon={<MapPin size={16} />} size="sm" label="العنوان" />
-                {mapUrl ? (
-                  <a
-                    href={mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-gray-800 leading-6 font-medium hover:text-primary transition-colors"
-                  >
-                    {addressText}
-                  </a>
-                ) : (
-                  <span className="text-xs text-gray-800 leading-6 font-medium">
-                    {addressText}
-                  </span>
-                )}
+                <span className="text-xs text-gray-800 leading-6 font-medium">
+                  {addressText}
+                </span>
               </div>
 
-              {/* الهواتف */}
+              {/* الهواتف (مربوط بـ whatsappNumber القادم من about-company) */}
               <div className="flex items-center gap-3">
                 <IconCircle icon={<Phone size={16} />} size="sm" label="الهاتف" />
                 <div dir="ltr" className="flex flex-wrap items-center gap-2 text-xs text-gray-800 font-medium">

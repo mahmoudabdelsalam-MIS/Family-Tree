@@ -168,8 +168,8 @@ export default function ProjectsSection({data}) {
           {/* عنوان السكشن */}
           <SectionTitle
             subtitle="ما تود طلبه" 
-            title="منتجات" 
-            highlightedText="عملائنا" 
+            title="منتجاتنا" 
+            highlightedText="وخدماتنا" 
           />
 
           {/* عمود النص والخلفية */}

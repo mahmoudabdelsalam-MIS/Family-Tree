@@ -48,6 +48,7 @@ import singleproductimg2 from './singleproductimg2.jpg';
 import singleproductimg3 from './singleproductimg3.jpg';
 import Subtract from './Subtract.svg';
 import thirdNewImg from './thirdNewImg.png';
+import puzzle from './puzzle.png';
 
 export {
   backgroundNav,
@@ -98,4 +99,5 @@ export {
   singleproductimg3,
   Subtract,
   thirdNewImg,
+  puzzle
 };

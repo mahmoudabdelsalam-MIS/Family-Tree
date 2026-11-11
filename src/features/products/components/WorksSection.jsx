@@ -37,8 +37,26 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
       )
     : catalogData.services || [];
 
+  // قسم "من أعمالنا" (الجزء الشمال): صور التبويب النشط من GET /services-catalog?categoryId=...
+  // ده بييجي من data.showcase.imageUrls، وبيتغير مع كل تبويب لأن الـ hook بيبعت categoryId
+  // ملحوظة: showcase.imageUrls في الباك = صور عرض العملاء + صور الخدمات، فبنشيل صور الخدمات
+  // (showcase.serviceImageUrls وكمان serviceImageUrls بتاعة كل فئة) ويفضل صور "عملائنا" بس
+  const stripQuery = (url) => String(url).split('?')[0];
+  const serviceImageSet = new Set(
+    [
+      ...(Array.isArray(showcase.serviceImageUrls) ? showcase.serviceImageUrls : []),
+      ...categories.flatMap((cat) => (Array.isArray(cat?.serviceImageUrls) ? cat.serviceImageUrls : [])),
+    ]
+      .filter(Boolean)
+      .map(stripQuery)
+  );
+
+  const showcaseImageUrls = (Array.isArray(showcase.imageUrls) ? showcase.imageUrls : [])
+    .filter(Boolean)
+    .filter((url) => !serviceImageSet.has(stripQuery(url)));
+
   // تحويل showcase.imageUrls إلى الصيغة التي يفهمها ProjectsGrid
-  const showcaseProjects = (showcase.imageUrls || []).map((url, index) => ({
+  const showcaseProjects = showcaseImageUrls.map((url, index) => ({
     id: `showcase-${index}`,
     title: showcase.title || 'من أعمالنا',
     image: url,
@@ -96,6 +114,7 @@ export default function WorksSection({ initialData, categoryIdFromUrl: propCateg
                 <div key={service.id} className="flex justify-center flex-wrap w-full sm:w-auto">
                   <ProductCard
                     icon={<PenTool className="w-10 h-10" />}
+                    image={service.imageUrl}
                     title={service.title}
                     price={service.price}
                     currency={service.currency}

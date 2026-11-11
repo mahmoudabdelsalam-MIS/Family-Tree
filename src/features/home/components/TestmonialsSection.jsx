@@ -35,20 +35,26 @@ const getImageUrl = (image) => {
 };
 
 const getPartnerName = (company) =>
-  company?.ar_title || company?.title || company?.name || 'شريك نجاح';
+  company?.title || company?.ar_title || company?.name || 'شريك نجاح';
 
-export default function TestimonialsSection({ clientReviews = [], partners = [] }) {
+// الشركاء بيترتبوا حسب sortOrder (اللي ملوش sortOrder بيتحط في الآخر)
+const sortPartners = (list) =>
+  (Array.isArray(list) ? list.filter(Boolean) : [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999));
+
+export default function TestimonialsSection({ clientReviews = [], featuredPartners = [], morePartners = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const testimonialsData = clientReviews || [];
-  const safePartners = Array.isArray(partners) ? partners.filter(Boolean) : [];
 
-  // فلترة الشركاء (أخذ المثبتين pinStatus === '1' أو القصر على العدد المتاح في logoPositions لتجنب أي كسر في البوزيشن)
-  const pinnedPartners = safePartners.filter(p => p.pinStatus === '1');
-  const activePartners = (pinnedPartners.length > 0 ? pinnedPartners : safePartners).slice(0, logoPositions.length);
+  // الشركاء المميزين (featuredPartners): بيتعرضوا في الدواير المبعثرة، بحد أقصى عدد الأماكن المتاحة في logoPositions
+  const sortedFeatured = sortPartners(featuredPartners);
+  const activePartners = sortedFeatured.slice(0, logoPositions.length);
 
-  // باقي الشركاء: أي شريك مش معروض في الدواير المبعثرة
-  const remainingPartners = safePartners.filter((p) => !activePartners.includes(p));
+  // باقي الشركاء (morePartners): بيتعرضوا في المودال
+  // ولو المميزين زادوا عن الأماكن المتاحة، الزيادة بتروح المودال برضه عشان محدش يختفي
+  const remainingPartners = [...sortedFeatured.slice(logoPositions.length), ...sortPartners(morePartners)];
 
   // قفل سكرول الصفحة + إغلاق المودال بزر Esc
   useEffect(() => {
@@ -83,7 +89,7 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
           />
 
           {activePartners.map((company, index) => {
-            const imageUrl = getImageUrl(company?.image);
+            const imageUrl = getImageUrl(company?.imageUrl || company?.image);
 
             return (
               <div
@@ -217,7 +223,7 @@ export default function TestimonialsSection({ clientReviews = [], partners = [] 
                   >
                     <div className='w-16 h-16 shrink-0 rounded-full bg-white shadow-sm flex items-center justify-center p-2'>
                       <img
-                        src={getImageUrl(company?.image)}
+                        src={getImageUrl(company?.imageUrl || company?.image)}
                         alt={getPartnerName(company)}
                         className='w-full h-full object-contain rounded-full'
                       />

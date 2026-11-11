@@ -1,25 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShoppingBag } from 'lucide-react';
 import Button from '../button/Button';
+export default function ServicesCard({ icon, image, title, price, onSeeMore , sallaUrl }) {
+  // لو الصورة فشلت تتحمل بنرجع للأيقونة
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(image) && !imageFailed;
 
-export default function ServicesCard({ icon, title, price, onSeeMore , sallaUrl }) {
     const handleNavigate = () => {
     if (sallaUrl) {
       window.open(sallaUrl, '_blank', 'noopener,noreferrer');
     }
   };
-
+ 
   // السعر بيظهر بس لو موجود فعلاً (null أو 0 أو فاضي = من غير سعر)
   const hasPrice = Number(price) > 0;
-
   return (
     <div className="w-[240px] h-[330px] bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex flex-col items-center text-center transition-all duration-300 hover:shadow-md">
       {/* الجزء العلوي: الأيقونة بتاخد المساحة المتبقية، فمهما كان العنوان طويل المحتوى ميخرجش برا الكارت */}
       <div className="w-full flex-1 min-h-0 flex flex-col items-center">
-        <div className="w-full flex-1 min-h-[80px] rounded-2xl bg-[#0B98500A] text-primary flex items-center justify-center mb-4 text-4xl">
-          {icon}
+        {/* لو للخدمة صورة بتتحط مكان الأيقونة، ولو مفيش بتفضل الأيقونة */}
+        {/* relative + الصورة absolute: المساحة ثابتة (بتاخد المتبقي من الكارت) والصورة بتتظبط جواها مهما كان حجمها الأصلي، فمتقدرش تكبّر الكارت */}
+        <div className="relative w-full flex-1 min-h-[80px] rounded-2xl bg-[#0B98500A] text-primary flex items-center justify-center mb-4 text-4xl overflow-hidden">
+          {showImage ? (
+            <img
+              src={image}
+              alt={title}
+              draggable="false"
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+              className="absolute inset-0 w-full h-full object-contain"
+            />
+          ) : (
+            icon
+          )}
         </div>
-
         {/* العنوان: مساحة ثابتة لسطرين، والزيادة بتتقص بـ ... */}
         <h3
           title={title}
@@ -27,7 +41,6 @@ export default function ServicesCard({ icon, title, price, onSeeMore , sallaUrl 
         >
           <span className="line-clamp-2 break-words">{title}</span>
         </h3>
-
         {/* السعر: المساحة محجوزة حتى لو مفيش سعر عشان الزرار يفضل في نفس المكان في كل الكروت */}
         <div className="h-6 flex items-center gap-1.5 text-gray-600 font-semibold">
           {hasPrice && (
@@ -40,7 +53,6 @@ export default function ServicesCard({ icon, title, price, onSeeMore , sallaUrl 
           )}
         </div>
       </div>
-
       <div className="w-full mt-4 mb-3 shrink-0">
         <Button
           size="sm"
